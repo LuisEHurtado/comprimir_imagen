@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+          /***INPUT FILES***/
+    /* input file style */
+    .input-file {
+        width: 0.1px;
+        height: 0.1px;
+        opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        z-index: -1;
+    }
+
+    .input-file+.js-labelFile {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 0 10px;
+        cursor: pointer;
+    }
+
+    .input-file+.js-labelFile .icon:before {
+        content: "\f093";
+    }
+
+    .input-file+.js-labelFile.has-file .icon:before {
+        content: "\f00c";
+        color: #5AAC7B;
+    }
+
+    input#color {
+        border: none;
+        width: 6rem;
+    }
+
+    .input-group-text {
+        background: #1ebbf0 !important;
+        color: #fff !important;
+    }
+    </style>
+</head>
+<body>
+    <div class="container" id="content">
+        <div class="row">
+            <div class="form-group col-sm-12 text-center mx-auto">
+                <div class="input-file-container">
+                    <label tabindex="0" for="fileGallery" class="input-file-trigger">
+                        <input name="fileGallery" id="fileGallery" type="file" class="input-file" multiple
+                            accept="image/*" @change="uploadImage" />
+                        <img :src="image_gallery" class="img-fluid" style="height:225px;width:225px;">
+                    </label> <br>
+                    <label for="">Imagen</label>
+                </div>
+            </div>
+
+            
+    <div class="col-md-12">
+        <h5 class="text-center">Galeria asociada</h5>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Imagen</th>
+                    <th>Accións</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(items,index) in gallery">
+                    <td>
+                        <img :src="items.gallery" alt="" class="img-fluid img-thumbnail" style="height:5rem">
+                    </td>
+
+                    <td>
+                        <button class="btn btn-danger" @click="ClearGallery(items,index)">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        /********* VUE ***********/
+        var vue_instance = new Vue({
+            el: '#content',
+            data: {
+                fileStore: '',
+                fileStoreTwo: '',
+                fileName: '',
+                image: '',
+                states: [],
+                brands: [],
+                models: [],
+                image_gallery: [],
+                gallery: [],
+                file_type: 'images',
+                form: {
+                    name: '',
+                    model_id: 0,
+                    category_id: 1,
+                    brand_id: 0,
+                    model: "",
+                    state_id: 0,
+                    location: "",
+                    options: "",
+                    price: 0,
+                    year: "",
+                    km: "",
+                    transmission: 'T.Automatica',
+                    air_conditioning: 1,
+                    quantity_owner: 1,
+                },
+            },
+            created: function() {
+                this.$nextTick(function() {
+                    this.image = "/upload.png"
+                    this.image_gallery = "upload.png"
+                });
+            },
+        
+            methods: {
+                comprimirImagen(imagenComoArchivo, porcentajeCalidad) {
+                    const $canvas = document.createElement("canvas");
+                    const blob2 = '';
+                    const imagen = new Image();
+                    imagen.onload = () => {
+                        $canvas.width = imagen.width;
+                        $canvas.height = imagen.height;
+                        $canvas.getContext("2d").drawImage(imagen, 0, 0);
+                        $canvas.toBlob(
+                            (blob) => {
+                                this.buildImage(blob)
+                            },
+                            "image/jpeg",
+                            porcentajeCalidad / 100
+                        );
+        
+                    };
+                    imagen.src = URL.createObjectURL(imagenComoArchivo);
+                    //this.buildImage(blob2)
+                },
+                buildImage(blob2) {
+                    console.log(blob2)
+                    var file = new File([blob2], "filename.jpg", {
+                        type: blob2.type
+                    })
+                    let self = this
+                    this.fileStoreTwo = file;
+                    var reader = new FileReader();
+                    reader.readAsDataURL(blob2);
+                    reader.onloadend = function() {
+                        var base64data = reader.result;
+                        self.image = base64data
+                    }
+                },
+                convertImage(e) {
+                    this.fileStore = e.target.files[0];
+                    const archivo = this.fileStore;
+                    const calidad = '18';
+                    const blob = this.comprimirImagen(archivo, parseInt(calidad));
+                    //$imagenPrevisualizar.src = URL.createObjectURL(blob);
+                },
+                convertImage2(e) {
+                    this.fileStore = e.target.files[0];
+                    if (this.fileStore.size > 4000000) {
+                        swalAlertImage("warning", "El archivo supera los 3MB.");
+                        this.fileSrtore = '';
+                        return false;
+                    }
+                    this.fileName = this.fileStore.name;
+                    var input = e.target;
+                    if (input.files && input.files[0]) {
+                        var reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.image = e.target.result;
+                        }
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                },
+              
+                
+                ClearGallery(items, index) {
+                    this.gallery.splice(index, 1);
+                    this.fileStoreVideo = '';
+                    this.video = '';
+                    this.fileStoreGallery = "";
+                    this.fileName = "";
+                    this.fileNameGallery = "";
+                    this.image = '';
+                },
+                uploadImage(e) {
+                    var selectedFiles = e.target.files;
+                    var input = e.target;
+                    var prueba;
+                    let self = this
+                    let iteration;
+                    let position = 0;
+                    let unique_id;
+                    let porcentajeCalidad = 18;
+                    var reader = new FileReader();
+                    if (this.gallery.length <= 0) {
+                        position = 0;
+                    } else {
+                        position = this.gallery.length + 1;
+                    }
+                    if (selectedFiles.length > 10) {
+                        swalAlert("warning", "Solo se permiten subir 10 fotos por publicación");
+                        return false;
+                    }
+                    for (let i = 0; i < selectedFiles.length; i++) {
+                        console.log(selectedFiles)
+                        if (input.files && input.files[0]) {
+                            console.log(selectedFiles[i].size)
+                          /*   if (selectedFiles[i].size > 7000000) {
+                                swalAlertImage("warning", "Uno de los archivos supera los 7Mb.");
+                                return false;
+                            } */
+                            const $canvas2 = document.createElement("canvas");
+                            const blob3 = '';
+                            const imagen2 = new Image();
+                            imagen2.onload = () => {
+                                $canvas2.width = imagen2.width;
+                                $canvas2.height = imagen2.height;
+                                $canvas2.getContext("2d").drawImage(imagen2, 0, 0);
+                                $canvas2.toBlob(
+                                    (blob1) => {
+                                        var reader = new FileReader();
+                                        reader.readAsDataURL(blob1);
+                                        reader.onloadend = function() {
+                                            var base64data1 = reader.result;
+                                            self.gallery.push({
+                                                gallery: base64data1,
+                                            });
+                                        }
+        
+        
+                                    },
+                                    "image/jpeg",
+                                    porcentajeCalidad / 100
+                                );
+        
+                            };
+                            imagen2.src = URL.createObjectURL(selectedFiles[i]);
+                        }
+        
+                    }
+                },
+        
+                setResult(data, position, unique_id) {
+                    console.log(position)
+                    this.image_gallery = data;
+                    this.gallery[position].gallery = this.image_gallery
+                },
+        
+         
+        
+            } //methods
+        });
+        </script>
+</body>
+</html>
